@@ -29,7 +29,7 @@ class Point:
     def nearestUnit(self, gridUnit, num):
         mult = math.floor(num/gridUnit)
         lowBound = mult * gridUnit
-        return (num - lowBound > (gridUnit / 2)) ? lowBound + gridUnit : lowBound
+        return (lowBound + gridUnit) if (num - lowBound > (gridUnit / 2)) else lowBound
 
     def snapGridPos(self, gridUnit):
         return Point(self.nearestUnit(self.x,gridUnit), self.nearestUnit(self.y, gridUnit))
