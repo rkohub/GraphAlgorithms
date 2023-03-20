@@ -5,15 +5,12 @@ from Body import Body, System
 from Point import Point, Vector
 
 #TODO !!!
-#Push working verson to github
 #Look at other doc for todo and reecompile list
 #Click a key to change color of tool.
 #UI
 #Add arrows to lines
 #Vertecess Lower Case
 #Edge labels
-#Better Edge storage for colors
-#Edge and vertex color storage in graph?
 #Snap To grid?
 #Curved Edges (3 point spline, Dragable?)
 #BFS, DFS, A*, Dikstra...
@@ -24,16 +21,16 @@ from Point import Point, Vector
 #If try to make edge between non existant nodes, the drawing of the edge will crash the program
 
 
-def addVertex(position, color):
+def addVertex(position):
     ball = Body(1, position, Vector(0,0))
     world.addBody(ball)
-    bodyColors.append(color)
+    # bodyColors.append(color)
     # world.graph.vertexMade[world.N] = 1
 
 def removeVertex(letter):
     print(F"Delete Vertex {letter}")
 
-def addEdge(letterA, letterB, color):
+def addEdge(letterA, letterB):
     print(F"Make edge {letterA} to {letterB}")
     index1 = ord(letterA) - 65
     index2 = ord(letterB) - 65
@@ -88,7 +85,7 @@ world.addBody(ball3)
 # world.addBody(ball4)
 #'''
 
-
+gridUnits = 50
 
 ballR = 20
 
@@ -99,7 +96,7 @@ mouseNow     = (False,False,False)
 mousePressed = (False,False,False)
 
 
-bodyColors = []
+bodyColors = [red, brown]
 
 grabbed = False
 dragging = False
@@ -168,7 +165,7 @@ while(True):
                     dragging = i
 
         if(not grabbed):
-            addVertex(pos, black);
+            addVertex(pos);
             
 
     if(mouseReleased[0] and not dragging == -1):
@@ -207,7 +204,7 @@ while(True):
                     #print(chr(65+i))
                     if(characterSequence[0] == "E" and len(characterSequence) >= 4):
                         if(characterSequence[1] == "C"):
-                            addEdge(characterSequence[2],characterSequence[3], brown)
+                            addEdge(characterSequence[2],characterSequence[3])
                             charAdd = False
                             characterSequence = []
                         elif(characterSequence[1] == "D"):
@@ -230,13 +227,16 @@ while(True):
 
     #Draw All Edges
     for v1 in range(0,len(world.graph.adj)):
-        for v2 in world.graph.adj[v1].iterable():
-            v2 = v2.value
+        for j in range(0,len(world.graph.adj[v1].iterable())):
+            col = world.graph.eColorNums[v1].iterable()[j].value
+            v2 = world.graph.adj[v1].iterable()[j].value
             #print(f"E {v1} to {v2}")
             #print(world.polyPoints(v1,v2,10,height))
             rect = world.polyPoints(v1,v2,10,drawTupleVersion = False)
             # print(res)
-            pygame.draw.polygon(screen, brown, rect)
+            # print(f"it {}")
+            print(col, )
+            pygame.draw.polygon(screen, bodyColors[col], rect)
 
     #Draw All Nodes
     for i in range(0,world.N):
@@ -245,7 +245,7 @@ while(True):
 
         bodyPos = (world.bodies)[i].position.tuple()
 
-        pygame.draw.circle(screen, bodyColors[i], bodyPos, ballR)
+        pygame.draw.circle(screen, bodyColors[world.graph.vColorNums[i]], bodyPos, ballR)
         # print(i)
 
         #A=65

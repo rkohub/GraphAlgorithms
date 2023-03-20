@@ -26,6 +26,14 @@ class Point:
         self.y /= (10 ** places)
         return self
 
+    def nearestUnit(self, gridUnit, num):
+        mult = math.floor(num/gridUnit)
+        lowBound = mult * gridUnit
+        return (num - lowBound > (gridUnit / 2)) ? lowBound + gridUnit : lowBound
+
+    def snapGridPos(self, gridUnit):
+        return Point(self.nearestUnit(self.x,gridUnit), self.nearestUnit(self.y, gridUnit))
+
     def distanceTo(self, p2):
         x2 = p2.x
         y2 = p2.y

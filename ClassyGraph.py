@@ -7,9 +7,12 @@ class ClassyGraph():
         self.e = 0
         self.adj = [None] * self.v
         self.data = [None] * self.v
+        self.vColorNums = [0] * self.v
+        self.eColorNums = [None] * self.v
         for i in range(self.v):
             self.adj[i] = LinkedList()
             self.data[i] = Data()
+            self.eColorNums[i] = LinkedList()
 
     def vertexExists(self, v):
         return v >= 0 and v < self.v
@@ -21,6 +24,7 @@ class ClassyGraph():
         if not(self.vertexExists(vTo)) or not(self.vertexExists(vFrom)):
             print("Cant make a edge to or from a vertex that isn't in the graph")
             return
+        self.eColorNums[vTo].add(1)
         self.adj[vTo].add(vFrom)
 
     def addEdge(self, vTo, vFrom):
