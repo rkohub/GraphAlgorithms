@@ -16,6 +16,9 @@ class Point:
     def toString(self):
         return f"({self.x}, {self.y})"
 
+    def __str__(self):
+        return f"({self.x}, {self.y})"
+
     def round(self, places = 5):
         #Round X and Y variables
         self.x *= (10 ** places)
@@ -26,10 +29,14 @@ class Point:
         self.y /= (10 ** places)
         return self
 
-    def nearestUnit(self, gridUnit, num):
+    def nearestUnit(self,num, gridUnit):
+        # print(gridUnit, num)
         mult = math.floor(num/gridUnit)
         lowBound = mult * gridUnit
-        return (lowBound + gridUnit) if (num - lowBound > (gridUnit / 2)) else lowBound
+        # print(mult, lowBound)
+        retVal = (lowBound + gridUnit) if (num - lowBound > (gridUnit / 2)) else lowBound
+        # print(f"Ret {retVal}")
+        return retVal
 
     def snapGridPos(self, gridUnit):
         return Point(self.nearestUnit(self.x,gridUnit), self.nearestUnit(self.y, gridUnit))
@@ -79,6 +86,9 @@ class Vector(Point):
         return Vector(xIn = (self.x / self.magnitude), yIn = (self.y / self.mag))
 
     def toString(self):
+        return f"{self.x} i, {self.y} j -- Mag: {self.magnitude}, Angle: {self.angle * 180 / math.pi}"
+
+    def __str__(self):
         return f"{self.x} i, {self.y} j -- Mag: {self.magnitude}, Angle: {self.angle * 180 / math.pi}"
 
     def scalarMultiplication(self, scalar):

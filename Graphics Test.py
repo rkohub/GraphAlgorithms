@@ -85,7 +85,7 @@ world.addBody(ball3)
 # world.addBody(ball4)
 #'''
 
-gridUnits = 50
+gridUnits = 25
 
 ballR = 20
 
@@ -165,11 +165,15 @@ while(True):
                     dragging = i
 
         if(not grabbed):
-            addVertex(pos);
+            snapPos = pos.snapGridPos(gridUnits)
+            # print(type(snapPos))
+            # print(snapPos)
+            # print(snapPos.toString())
+            addVertex(snapPos);
             
 
     if(mouseReleased[0] and not dragging == -1):
-        (world.bodies)[dragging].position = pos
+        (world.bodies)[dragging].position = pos.snapGridPos(gridUnits)
         dragging = -1
 
     keysLast = keysNow
@@ -235,7 +239,7 @@ while(True):
             rect = world.polyPoints(v1,v2,10,drawTupleVersion = False)
             # print(res)
             # print(f"it {}")
-            print(col, )
+            # print(col, )
             pygame.draw.polygon(screen, bodyColors[col], rect)
 
     #Draw All Nodes

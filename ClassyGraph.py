@@ -46,6 +46,11 @@ class ClassyGraph():
             #print(f"Vertex {i} with adacent Edges {g.adj[i].iterable()}")
             print(f"Vertex {i} with adacent Edges {self.adj[i].values()}")
 
+    def __str__(self):
+        for i in range(self.v):
+            #print(f"Vertex {i} with adacent Edges {g.adj[i].iterable()}")
+            print(f"Vertex {i} with adacent Edges {self.adj[i].values()}")
+
 # g = ClassyGraph(5)
 # g.addEdge(2,3)
 # # g.addEdge(2,1)
