@@ -1,12 +1,15 @@
 import pygame
 import sys
 import time
+import math
 from Body import Body, System
 from Point import Point, Vector
+from ClassyGraph import ClassyGraph
 
 #TODO !!!
 #Look at other doc for todo and reecompile list
 #Click a key to change color of tool.
+#Not perfect Grabbing if close
 #UI
 #Add arrows to lines
 #Vertecess Lower Case
@@ -42,6 +45,58 @@ def removeEdge(letterA, letterB):
     index1 = ord(letterA) - 65
     index2 = ord(letterB) - 65
     world.graph.removeEdge(index1,index2)
+
+def createGraphFromFile(fileName):
+    f = open(fileName, "r")
+    f = str(f.read())
+    # print(type(f))
+    linesArray = f.split("\n")
+
+    graph = None#ClassyGraph()
+
+    #print(linesArray)
+
+    vertexNames = []
+    doneVertex = False
+
+    # edges = []
+    vertexCount = 0
+
+    for i in range(0,len(linesArray)):
+        line = linesArray[i]
+        if(line == ''):
+            if(doneVertex):
+                break
+            doneVertex = True
+            vertexCount = len(vertexNames)
+            graph = ClassyGraph(vertexCount)
+            # for i in range(vertexCount):
+            #     edges.append([0] * vertexCount)
+            continue
+        if(not doneVertex):
+            vertexNames.append(line)
+        else:
+            vxs = line.split()
+            v1 = vxs[0]
+            v2 = vxs[1]
+            v1Ind = vertexNames.index(v1)
+            v2Ind = vertexNames.index(v2)
+            # edges[v1Ind][v2Ind] += 1
+            graph.addEdge(v1Ind,v2Ind)
+
+
+    #print(edges)
+    return graph
+
+def genRadialPoints(n):
+    r = 200
+    points = []
+    for i in range(n):
+        num = (2 * i * math.pi / n) #+ math.pi/4)
+        x = r * math.cos(num)
+        y = r * math.sin(num)
+        points.append(Point(x,y))
+    return points
 
 
 white = [255,255,255]
@@ -85,7 +140,7 @@ world.addBody(ball3)
 # world.addBody(ball4)
 #'''
 
-gridUnits = 50
+gridUnits = 25
 
 ballR = 20
 
@@ -99,7 +154,7 @@ mousePressed = (False,False,False)
 bodyColors = [red, brown]
 
 grabbed = False
-dragging = False
+dragging = -1
 
 grabTolerance = 50
 
@@ -110,6 +165,144 @@ keysArray = [pygame.K_a,pygame.K_b,pygame.K_c,pygame.K_d,pygame.K_e,pygame.K_f,p
 
 characterSequence = []
 charAdd = False
+
+
+def drawWorld(world):
+    pass
+
+def lineCoords(endPoint, pointOffset):
+    #Assuming a start at the orign, and the @param, endPoint, describes the positive y direction
+    #Make a new point at the @param pointOffset Cooridnates from that new definedY and X Axis's
+
+    b1 = Point(0,0)
+    b2 = endPoint
+
+    dy = b2.y - b1.y #Point one at origin (0,0)
+    dx = b2.x - b1.x
+    l = b1.distanceTo(b2)
+    theta = b1.angleTo(b2)
+    #https://www.desmos.com/calculator/b9us5sxof2
+    #l = length
+
+    w = 10/l
+
+    p = l * math.sin(theta) #y
+    n = l * math.cos(theta) #x
+
+    # print(f"P {p}, N {n}")
+    # print(f"PO {pointOffset}")
+
+    xO =  ((pointOffset.x * p) / (2*l)) + ((pointOffset.y * n) / l)
+    yO = -((pointOffset.x * n) / (2*l)) + ((pointOffset.y * p) / l)
+
+
+
+    # print(f"x0 {xO}, y0 {yO}")
+
+    return Point(xO,yO)
+
+def rectPoints(body1Pos, body2Pos, rectWidth, screenHeight = 750, drawTupleVersion = True):
+    # return [(50,50),(60,40),(80,70),(70,90)]
+    b1 = body1Pos
+    b2 = body2Pos
+    # print(f"P {b1},{b2}")
+    dy = b2.y - b1.y
+    dx = b2.x - b1.x
+    l = b1.distanceTo(b2)
+    theta = b1.angleTo(b2)
+    #https://www.desmos.com/calculator/b9us5sxof2
+    w = rectWidth/l
+    #l = length
+    p = l * math.sin(theta) #y
+    n = l * math.cos(theta) #x
+
+    #-wp/2, wp/2, -wp/2 +n, wp/2 +n (Xcords of points)
+    #wn/2, -wn/2, wn/2 +p, -wn/2 +p (Ycords of points)
+
+    arrowOut = 15
+
+    topArrow = l - ballR - 2
+
+    arrowL = 15
+
+    offsetRect = [Point(rectWidth,0), Point(rectWidth,topArrow - arrowL),Point(rectWidth + arrowOut,topArrow - arrowL), Point(0,topArrow), Point(-rectWidth - arrowOut,topArrow - arrowL), Point(-rectWidth,topArrow - arrowL), Point(-rectWidth,0)]
+
+    # offsetRect = [Point(rectWidth,0), Point(0,l * 0.9), Point(-rectWidth,0)]
+
+    # print(f"1 {lineCoords()} 2 {()}")
+
+    secondDer = []
+    for i in range(0,len(offsetRect)):
+        # print(f"P {b1},{b2}")
+        newB2 = Point(b2.x, b2.y)
+        newB2.subtract(b1)
+        # print(f"B2 {newB2}")
+        val = lineCoords(newB2, offsetRect[i])
+        # val = lineCoords(newB2, Point(10,l/2))
+        #print(f"V: {val}")
+        val.add(b1)
+        # print(f"V{i}: {val}")
+        if(drawTupleVersion):
+            secondDer.append(val.drawTuple())
+        else:
+            secondDer.append(val.tuple())
+
+    # print(f"SD: {secondDer}")
+
+    return secondDer
+
+    # ret = []
+    # if(drawTupleVersion):
+    #     ret = [Point(-w*p/2 + b1.x,w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + b1.x,-w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).drawTuple(screenHeight),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).drawTuple(screenHeight)]
+    # else:
+    #     ret = [Point(-w*p/2 + b1.x,w*n/2 + b1.y).tuple(),Point(w*p/2 + b1.x,-w*n/2 + b1.y).tuple(),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).tuple(),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).tuple()]
+        
+    # print(f"RET {ret}")
+    # return ret
+
+
+def drawGraph(graph, positions):
+
+    #Draw All Edges
+    for v1 in range(0,len(graph.adj)):
+        for j in range(0,len(graph.adj[v1].iterable())):
+            col = graph.eColorNums[v1].iterable()[j].value
+            v2 = graph.adj[v1].iterable()[j].value
+
+            # if(graph.edgeExists(v1,v2)):
+               
+                # print("call")
+            rect = rectPoints(positions[v1].position,positions[v2].position,10,drawTupleVersion = False)
+
+            pygame.draw.polygon(screen, bodyColors[col], rect)
+
+    #Draw All Nodes
+    for i in range(0,graph.v):
+        if(dragging == i):
+            positions[i].position = pos
+
+        bodyPos = positions[i].position.tuple()
+
+        pygame.draw.circle(screen, bodyColors[graph.vColorNums[i]], bodyPos, ballR)
+        # print(i)
+
+        #A=65
+        if pygame.font:
+            font = pygame.font.Font(None, 30)
+
+            text1 = font.render(chr(65+i),1,black)
+            textpos1 = text1.get_rect(x=bodyPos[0] + 20,y=bodyPos[1] - 20)
+            screen.blit(text1, textpos1)
+
+newGraph = createGraphFromFile("graphData.txt")
+raidalPoints = genRadialPoints(newGraph.v)
+#print(raidalPoints)
+bodies = [None] * newGraph.v
+for i in range(newGraph.v):
+    # print(i, raidalPoints[i])
+    center = Point(width/2, height/2)
+    raidalPoints[i].add(center)
+    bodies[i] = Body(1, raidalPoints[i], Vector(0,0))
 
 while(True):
     for event in pygame.event.get():
@@ -165,11 +358,15 @@ while(True):
                     dragging = i
 
         if(not grabbed):
-            addVertex(pos);
+            snapPos = pos.snapGridPos(gridUnits)
+            # print(type(snapPos))
+            # print(snapPos)
+            # print(snapPos.toString())
+            addVertex(snapPos);
             
 
     if(mouseReleased[0] and not dragging == -1):
-        (world.bodies)[dragging].position = pos
+        (world.bodies)[dragging].position = pos.snapGridPos(gridUnits)
         dragging = -1
 
     keysLast = keysNow
@@ -225,6 +422,9 @@ while(True):
                             charAdd = False
                             characterSequence = []
 
+    #drawGraph(world.graph, world.bodies)
+    drawGraph(newGraph, bodies)
+    '''
     #Draw All Edges
     for v1 in range(0,len(world.graph.adj)):
         for j in range(0,len(world.graph.adj[v1].iterable())):
@@ -235,7 +435,7 @@ while(True):
             rect = world.polyPoints(v1,v2,10,drawTupleVersion = False)
             # print(res)
             # print(f"it {}")
-            print(col, )
+            # print(col, )
             pygame.draw.polygon(screen, bodyColors[col], rect)
 
     #Draw All Nodes
@@ -255,7 +455,7 @@ while(True):
             text1 = font.render(chr(65+i),1,black)
             textpos1 = text1.get_rect(x=bodyPos[0] + 20,y=bodyPos[1] - 20)
             screen.blit(text1, textpos1)
-
+    #'''
     
 
     

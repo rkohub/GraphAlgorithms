@@ -39,11 +39,12 @@ class Body:
 
 class System:
     def __init__(self, systemAccelIn = Vector(0,0)):
-        self.bodies = []
+        self.v = 26
+        self.bodies = [Body(1, Point(0,0), Vector(0,0))] * self.v
         self.N = 0
         self.systemAccel = systemAccelIn
         self.gravitationalConstant = 0.001#100#100#0.001
-        self.graph = ClassyGraph(25)
+        self.graph = ClassyGraph(self.v)
     
     #Fg = G m1m2/r^2
     #Ag = C mOTHER/R^2
@@ -106,5 +107,5 @@ class System:
 
     
     def addBody(self, bodyIn):
-        self.bodies.append(bodyIn)
+        self.bodies[self.N] = bodyIn
         self.N += 1
