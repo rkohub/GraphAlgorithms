@@ -52,6 +52,22 @@ class Point:
         #DOESNT UPDATE MAG!!
         #return self
 
+    def negate(self):
+        self.x = -self.x
+        self.y = -self.y
+
+    def copy(self):
+        return Point(self.x, self.y)
+
+    def subtract(self, p2):
+        # print(f"P2B {p2}")
+        # p2.negate()
+        # print(f"P2A {p2}")
+
+        pnew = p2.copy()
+        pnew.negate()
+        self.add(pnew)
+
     @staticmethod    
     def sum(p1, p2): #Whatever they are, make a Point
         return Point(xIn = (p1.x + p2.x), yIn = (p1.y + p2.y))
