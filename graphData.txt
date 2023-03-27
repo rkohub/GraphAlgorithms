@@ -1,6 +1,16 @@
-A
-B
-C
+L
+M
+N
+P
+Q
+R
 
-A C
-A B
+L P
+L Q
+M Q
+N R
+P M
+P N
+Q N
+R L
+R M

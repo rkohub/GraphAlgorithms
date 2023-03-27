@@ -5,6 +5,7 @@ import math
 from Body import Body, System
 from Point import Point, Vector
 from ClassyGraph import ClassyGraph
+from networkx.algorithms import isomorphism
 
 #TODO !!!
 #Graph Export to file
@@ -209,7 +210,7 @@ world.addBody(ball3)
 # world.addBody(ball4)
 #'''
 
-gridUnits = 25
+gridUnits = 25 * scaleFactor
 
 ballR = 15 * scaleFactor
 
@@ -225,7 +226,7 @@ bodyColors = [red, brown]
 grabbed = False
 dragging = -1
 
-grabTolerance = 50
+grabTolerance = ballR * 2
 
 keysLast = pygame.key.get_pressed()
 keysNow = pygame.key.get_pressed()
@@ -369,6 +370,14 @@ def drawGraph(graph, positions):
             screen.blit(text1, textpos1)
 
 newGraph = createGraphFromFile("graphData.txt")
+newGraph2 = createGraphFromFile("graphExport2.txt")
+
+G1 = newGraph.makeGraphLib()
+G2 = newGraph2.makeGraphLib()
+
+GM = isomorphism.GraphMatcher(G1, G2)
+print(f"ISO: {GM.is_isomorphic()}")
+
 raidalPoints = genRadialPoints(newGraph.v)
 
 softGraph = makeSoftGraph()
@@ -387,6 +396,9 @@ for i in range(newGraph.v):
     center = Point(width/2, height/2)
     raidalPoints[i].add(center)
     bodies[i] = Body(1, raidalPoints[i], Vector(0,0))
+
+
+# world.graph.matPlotShow()
 
 while(True):
     for event in pygame.event.get():
@@ -473,16 +485,21 @@ while(True):
                     charAdd = True
                     pass
 
-                if(i == 16): #Q = Quit  
+                if(i == 16 and not charAdd): #Q = Quit  
                     #Start Edge Creation
                     print("Q")
                     pygame.quit()
                     sys.exit()
 
-                if(i == 23): #X = Export  
+                if(i == 23 and not charAdd): #X = Export  
                     #Export Graph To File
                     print("X")
                     world.graph.export()
+
+                if(i == 3 and not charAdd): #D = Display  
+                    #Export Graph To File
+                    print("D")
+                    world.graph.matPlotShow()
 
                 if(charAdd):
                     characterSequence.append(chr(65+i))
@@ -512,7 +529,7 @@ while(True):
                             characterSequence = []
 
     # drawGraph(world.graph, world.bodies)
-    drawGraph(newGraph, bodies)
+    # drawGraph(newGraph2, bodies)
 
     # drawGraph(softGraph, softBodies)
     '''
