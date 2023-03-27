@@ -33,6 +33,45 @@ class ClassyGraph():
             self.eColorNums = eColorNumsIn
     
 
+    def export(self):
+        print("EXPORTED!")
+        f = open("graphExport.txt", "w")
+        uen = self.usedEdgeNums()
+        #print(uen)
+        graphStr = ""
+        for i in range(len(uen)):
+            val = uen[i]
+            graphStr += (chr(65+val) + "\n")
+        # print(f"GS: {graphStr}")
+        # print("")
+        graphStr += "\n"
+
+        for i in range(self.v):
+            itt = self.adj[i].iterable()
+            for j in itt:
+                val = j.value
+                graphStr += (chr(65+i) + " " + chr(65+val) + "\n")
+
+        f.write(graphStr)
+        f.close()
+
+    def usedEdgeNums(self):
+        used = []
+        for i in range(self.v):
+            itt = self.adj[i].iterable()
+            leng = len(itt)
+            if(leng > 0):
+                if(i not in used):
+                    used.append(i)
+                for j in itt:
+                    val = j.value
+                    # print(f"V {val}")
+                    if(val not in used):
+                        used.append(val)
+        used.sort()
+        return used
+
+
     def vertexExists(self, v):
         return v >= 0 and v < self.v
 

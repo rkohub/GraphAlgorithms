@@ -7,6 +7,9 @@ from Point import Point, Vector
 from ClassyGraph import ClassyGraph
 
 #TODO !!!
+#Graph Export to file
+#Graph to Lib Graph
+
 #Look at other doc for todo and reecompile list
 #Click a key to change color of tool.
 #Not perfect Grabbing if close
@@ -99,6 +102,68 @@ def genRadialPoints(n):
     return points
 
 
+def parseSoftCSV():
+    f = open("L1Nodes.csv", "r")
+    f = str(f.read())
+    linesArray = f.split("\n")
+    positions = []
+    xMinMinus = 1500
+    yMinMinus = 750
+
+    for i in range(0,len(linesArray)):
+        line = linesArray[i]
+        # print(line)
+        lineArr = line.split(",")
+        # print(lineArr)
+        if(len(lineArr) > 1):
+            if(i == 0):
+                labels = lineArr
+            else:
+                positions.append(Point((int(lineArr[1])-xMinMinus) * scaleFactor,(int(lineArr[2])-yMinMinus) * scaleFactor))
+    return positions
+
+def makeSoftGraph():
+    nodeCount = 46
+    f = open("L1Nodes.csv", "r")
+    fstr = str(f.read())
+    linesArray = fstr.split("\n")
+    names = []
+    for i in range(0,len(linesArray)):
+        line = linesArray[i]
+        # print(line)
+        lineArr = line.split(",")
+        # print(lineArr)
+        if(len(lineArr) > 1):
+            names.append(lineArr[0])
+
+    f.close()
+
+    f = open("L1Edges.csv", "r")
+    fstr = str(f.read())
+    # print(type(f))
+    linesArray = fstr.split("\n")
+
+    graph = ClassyGraph(nodeCount)
+
+    for i in range(0,len(linesArray)):
+        line = linesArray[i]
+        # print(line)
+        lineArr = line.split(",")
+        # print(lineArr)
+        if(len(lineArr) > 1 and i > 0):
+            # names.append(lineArr[0])
+            v1 = lineArr[1]
+            v2 = lineArr[2]
+            v1Ind = names.index(v1)
+            v2Ind = names.index(v2)
+            graph.addEdge(v1Ind,v2Ind)
+            pass
+
+    return graph
+
+
+
+
 white = [255,255,255]
 black = [0,0,0]
 brown = [190,130,65]
@@ -106,7 +171,11 @@ grey  = [200,200,200]
 red   = [200,50,50]
 blue  = [50,50,200]
 
-size = width, height = 750,750
+scaleFactor = 1#1/2
+
+
+size = width, height = 750,750#1500,1750
+#size = width, height = int(1500 * scaleFactor),int(1750 * scaleFactor)
 screen = pygame.display.set_mode(size)
 pygame.init()
 #screen.fill(white)
@@ -142,7 +211,7 @@ world.addBody(ball3)
 
 gridUnits = 25
 
-ballR = 20
+ballR = 15 * scaleFactor
 
 
 #0 = Mouse Left, 2 = Mouse Right, assuming then 1 = Mouse middle
@@ -170,6 +239,9 @@ charAdd = False
 def drawWorld(world):
     pass
 
+
+lineT = 8 * scaleFactor
+
 def lineCoords(endPoint, pointOffset):
     #Assuming a start at the orign, and the @param, endPoint, describes the positive y direction
     #Make a new point at the @param pointOffset Cooridnates from that new definedY and X Axis's
@@ -184,7 +256,7 @@ def lineCoords(endPoint, pointOffset):
     #https://www.desmos.com/calculator/b9us5sxof2
     #l = length
 
-    w = 10/l
+    w = lineT/l
 
     p = l * math.sin(theta) #y
     n = l * math.cos(theta) #x
@@ -219,13 +291,15 @@ def rectPoints(body1Pos, body2Pos, rectWidth, screenHeight = 750, drawTupleVersi
     #-wp/2, wp/2, -wp/2 +n, wp/2 +n (Xcords of points)
     #wn/2, -wn/2, wn/2 +p, -wn/2 +p (Ycords of points)
 
-    arrowOut = 15
+    arrowOut = 20
 
     topArrow = l - ballR - 2
 
-    arrowL = 15
+    arrowL = 20
 
-    offsetRect = [Point(rectWidth,0), Point(rectWidth,topArrow - arrowL),Point(rectWidth + arrowOut,topArrow - arrowL), Point(0,topArrow), Point(-rectWidth - arrowOut,topArrow - arrowL), Point(-rectWidth,topArrow - arrowL), Point(-rectWidth,0)]
+
+    offsetRect = [Point(rectWidth,0),Point(rectWidth,l),Point(-rectWidth,l),Point(-rectWidth,0)]
+    # offsetRect = [Point(rectWidth,0), Point(rectWidth,topArrow - arrowL),Point(rectWidth + arrowOut,topArrow - arrowL), Point(0,topArrow), Point(-rectWidth - arrowOut,topArrow - arrowL), Point(-rectWidth,topArrow - arrowL), Point(-rectWidth,0)]
 
     # offsetRect = [Point(rectWidth,0), Point(0,l * 0.9), Point(-rectWidth,0)]
 
@@ -272,7 +346,7 @@ def drawGraph(graph, positions):
             # if(graph.edgeExists(v1,v2)):
                
                 # print("call")
-            rect = rectPoints(positions[v1].position,positions[v2].position,10,drawTupleVersion = False)
+            rect = rectPoints(positions[v1].position,positions[v2].position,lineT,drawTupleVersion = False)
 
             pygame.draw.polygon(screen, bodyColors[col], rect)
 
@@ -296,6 +370,16 @@ def drawGraph(graph, positions):
 
 newGraph = createGraphFromFile("graphData.txt")
 raidalPoints = genRadialPoints(newGraph.v)
+
+softGraph = makeSoftGraph()
+softPoints = parseSoftCSV()
+
+softBodies = [None] * softGraph.v
+for i in range(softGraph.v):
+    softBodies[i] = Body(1, softPoints[i], Vector(0,0))
+
+
+
 #print(raidalPoints)
 bodies = [None] * newGraph.v
 for i in range(newGraph.v):
@@ -395,6 +479,11 @@ while(True):
                     pygame.quit()
                     sys.exit()
 
+                if(i == 23): #X = Export  
+                    #Export Graph To File
+                    print("X")
+                    world.graph.export()
+
                 if(charAdd):
                     characterSequence.append(chr(65+i))
                     print(characterSequence)
@@ -422,8 +511,10 @@ while(True):
                             charAdd = False
                             characterSequence = []
 
-    #drawGraph(world.graph, world.bodies)
+    # drawGraph(world.graph, world.bodies)
     drawGraph(newGraph, bodies)
+
+    # drawGraph(softGraph, softBodies)
     '''
     #Draw All Edges
     for v1 in range(0,len(world.graph.adj)):
