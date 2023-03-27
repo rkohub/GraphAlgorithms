@@ -1,5 +1,8 @@
 from Data import Data
 from LinkedList import LinkedList
+import networkx as nx
+import matplotlib.pyplot as plt
+from networkx.algorithms import isomorphism
 
 class ClassyGraph():
     def __init__ (self, vIn = 0, adjIn = -1, dataIn = -1, vColorNumsIn = -1, eColorNumsIn = -1):
@@ -108,6 +111,21 @@ class ClassyGraph():
         for i in range(self.v):
             #print(f"Vertex {i} with adacent Edges {g.adj[i].iterable()}")
             print(f"Vertex {i} with adacent Edges {self.adj[i].values()}")
+
+    def makeGraphLib(self):
+        G = nx.Graph()
+        for i in range(self.v):
+            itt = self.adj[i].iterable()
+            for j in itt:
+                val = j.value
+                G.add_edge(chr(65+i), chr(65+val))
+        return G
+
+    def matPlotShow(self):
+        G1 = self.makeGraphLib()
+        nx.draw(G1, with_labels=True, font_weight='bold')
+        plt.show()
+
 
 # g = ClassyGraph(5)
 # g.addEdge(2,3)
