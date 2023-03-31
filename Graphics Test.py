@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import math
+import os
 from Body import Body, System
 from Point import Point, Vector
 from ClassyGraph import ClassyGraph
@@ -162,7 +163,27 @@ def makeSoftGraph():
 
     return graph
 
+def generateSimpleGraph(n, seed):
+    #Seed goes up to #(N-1) * (N-2) / 2
+    #seed is a number that, as a binary number represents, an n by n adjacency matrix
+    # x,1,1,1
+    # x,x,1,1
+    # x,x,x,1
+    # x,x,x,x (3 * (3-1)/2)
 
+    #10, 001010
+    #AC BC
+    c = 0
+    graph = ClassyGraph(n)
+    for i in range(n):
+        for j in range(i+1,n):
+            if(not i == j):
+                val = seed >> c
+                if(val % 2):
+                    graph.addEdge(i,j)
+                # print(i,j)
+                c += 1
+    return graph
 
 
 white = [255,255,255]
@@ -369,16 +390,64 @@ def drawGraph(graph, positions):
             textpos1 = text1.get_rect(x=bodyPos[0] + 20,y=bodyPos[1] - 20)
             screen.blit(text1, textpos1)
 
-newGraph = createGraphFromFile("graphData.txt")
-newGraph2 = createGraphFromFile("graphExport2.txt")
+def exportGen():
+    #/GraphExports/
+    fileStr = f"./GraphExports/g{genNum}.txt"
+    genGraph.export(file = fileStr)
+
+def checkGenEquivalence():
+    folderName = "./GraphExports/"
+    genLib = genGraph.makeGraphLib()
+    for fileName in os.listdir(folderName):
+        fullName = folderName + fileName
+        g = createGraphFromFile(fullName).makeGraphLib()
+        iso = isomorphism.GraphMatcher(genLib,g).is_isomorphic()
+        if(iso):
+            return True
+    return False
+
+def addAllNonIsos(n):
+    global genNum, genGraph
+    nums = int(((n) * (n-1)) / (2))#int(((n-1) * (n-2)) / (2))
+    numGraphs = (2 ** nums)
+    for i in range(numGraphs):
+        print(i)
+        seenB4 = checkGenEquivalence()
+        print(f"seenB4: {seenB4}")
+        if(not seenB4):
+            exportGen()
+        genNum += 1
+        genGraph = generateSimpleGraph(n,genNum)
+
+def getGraphFoler(fileNum):
+    folderName = "./GraphExports/"
+    genLib = genGraph.makeGraphLib()
+    #print(os.listdir(folderName))
+    #print(fileNum)
+    fileList = os.listdir(folderName)
+    fileCount = len(fileList)
+    fileName = fileList[fileNum%fileCount]
+    fullName = folderName + fileName
+    g = createGraphFromFile(fullName)
+    return g
+
+
+
+n = 5
+genNum = 0
+
+genGraph = generateSimpleGraph(n,genNum)
+
+'''
+newGraph = createGraphFromFile("./GraphExports/g3.txt")
+newGraph2 = createGraphFromFile("./GraphExports/g7.txt")
 
 G1 = newGraph.makeGraphLib()
 G2 = newGraph2.makeGraphLib()
 
 GM = isomorphism.GraphMatcher(G1, G2)
 print(f"ISO: {GM.is_isomorphic()}")
-
-raidalPoints = genRadialPoints(newGraph.v)
+#'''
 
 softGraph = makeSoftGraph()
 softPoints = parseSoftCSV()
@@ -389,9 +458,11 @@ for i in range(softGraph.v):
 
 
 
+raidalPoints = genRadialPoints(genGraph.v)
+
 #print(raidalPoints)
-bodies = [None] * newGraph.v
-for i in range(newGraph.v):
+bodies = [None] * genGraph.v
+for i in range(genGraph.v):
     # print(i, raidalPoints[i])
     center = Point(width/2, height/2)
     raidalPoints[i].add(center)
@@ -399,6 +470,13 @@ for i in range(newGraph.v):
 
 
 # world.graph.matPlotShow()
+
+#addAllNonIsos(5)
+genNum = 0
+
+#3,2,0/1,5,8,9,7,4,(Dis),6,10
+
+#9
 
 while(True):
     for event in pygame.event.get():
@@ -494,12 +572,29 @@ while(True):
                 if(i == 23 and not charAdd): #X = Export  
                     #Export Graph To File
                     print("X")
-                    world.graph.export()
+                    # world.graph.export()
+                    seenB4 = checkGenEquivalence()
+                    print(f"seenB4: {seenB4}")
+                    if(not seenB4):
+                        exportGen()
 
                 if(i == 3 and not charAdd): #D = Display  
                     #Export Graph To File
                     print("D")
                     world.graph.matPlotShow()
+
+                if(i == 19 and not charAdd): #T = Tree  
+                    #Check if is tree
+                    print("T")
+                    print(world.graph.isTree())
+
+                if(i == 13 and not charAdd): #N = Next  
+                    #Next Generated Graph
+                    print("N")
+                    genGraph = getGraphFoler(genNum)
+                    genNum += 1
+                    # genGraph = generateSimpleGraph(n,genNum)
+                    
 
                 if(charAdd):
                     characterSequence.append(chr(65+i))
@@ -529,7 +624,7 @@ while(True):
                             characterSequence = []
 
     # drawGraph(world.graph, world.bodies)
-    # drawGraph(newGraph2, bodies)
+    drawGraph(genGraph, bodies)
 
     # drawGraph(softGraph, softBodies)
     '''
