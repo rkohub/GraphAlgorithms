@@ -36,9 +36,9 @@ class ClassyGraph():
             self.eColorNums = eColorNumsIn
     
 
-    def export(self):
+    def export(self, file = "graphExport.txt"):
         print("EXPORTED!")
-        f = open("graphExport.txt", "w")
+        f = open(file, "w+")
         uen = self.usedEdgeNums()
         #print(uen)
         graphStr = ""
@@ -58,6 +58,9 @@ class ClassyGraph():
         f.write(graphStr)
         f.close()
 
+    def clearGraph(self):
+        self = self.__init__()
+
     def usedEdgeNums(self):
         used = []
         for i in range(self.v):
@@ -73,7 +76,6 @@ class ClassyGraph():
                         used.append(val)
         used.sort()
         return used
-
 
     def vertexExists(self, v):
         return v >= 0 and v < self.v
@@ -125,6 +127,10 @@ class ClassyGraph():
         G1 = self.makeGraphLib()
         nx.draw(G1, with_labels=True, font_weight='bold')
         plt.show()
+
+    def isTree(self):
+        G = self.makeGraphLib()
+        return nx.is_tree(G)
 
 
 # g = ClassyGraph(5)
