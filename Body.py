@@ -45,7 +45,15 @@ class System:
         self.systemAccel = systemAccelIn
         self.gravitationalConstant = 0.001#100#100#0.001
         self.graph = ClassyGraph(self.v)
+        self.id = -1
     
+    def setBodies(self, bodidesIn):
+        self.bodies = bodidesIn
+
+    def setGraph(self, graphIn):
+        self.graph = graphIn
+        self.N = graphIn.v
+
     #Fg = G m1m2/r^2
     #Ag = C mOTHER/R^2
     def addGravityAccel(self):

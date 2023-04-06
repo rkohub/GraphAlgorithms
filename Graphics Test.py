@@ -9,8 +9,10 @@ from ClassyGraph import ClassyGraph
 from networkx.algorithms import isomorphism
 
 #TODO !!!
-#Graph Export to file
-#Graph to Lib Graph
+#Labels Array
+#Anim to Iso's
+#Prufer sequence
+#Laplatian matrix
 
 #Look at other doc for todo and reecompile list
 #Click a key to change color of tool.
@@ -102,15 +104,28 @@ def genRadialPoints(n):
         y = r * math.sin(num)
         points.append(Point(x,y))
     return points
+    
+def makeSoftGraph():
+    
 
+    f = open("Node.csv", "r")
+    fstr = str(f.read())
+    linesArray = fstr.split("\n")
 
-def parseSoftCSV():
-    f = open("L1Nodes.csv", "r")
-    f = str(f.read())
-    linesArray = f.split("\n")
     positions = []
     xMinMinus = 1500
     yMinMinus = 750
+    names = []
+
+    n = 0
+
+    xPos = []
+    yPos = []
+
+    # floors = []
+    # buildings = []
+    groups = []
+    #['L1, 45 Francis', 'L2, Tower', 'L1, Tower', 'L2, 45 Francis', '2, 15 Francis', '2, 45 Francis', '1, 45 Francis', '1, Tower', '2, BTM', '3, BTM', '1, BTM', 'L2, BTM', '1, Shapiro', '2, Shapiro', '3, Shapiro', 'L1, Shapiro', 'L2, Shapiro', '2, Tower', '3, Tower', '3, 45 Francis']
 
     for i in range(0,len(linesArray)):
         line = linesArray[i]
@@ -119,28 +134,38 @@ def parseSoftCSV():
         # print(lineArr)
         if(len(lineArr) > 1):
             if(i == 0):
-                labels = lineArr
+                pass
             else:
-                positions.append(Point((int(lineArr[1])-xMinMinus) * scaleFactor,(int(lineArr[2])-yMinMinus) * scaleFactor))
-    return positions
+                # combo = lineArr[3] + ", " + lineArr[4]
+                # if(combo not in groups):
+                #     groups.append(combo)
+                
+                if(lineArr[3] == "L1"):#and lineArr[4] == "45 Francis"):
+                # if(True):
+                    # print("N")
+                    names.append(lineArr[0])
+                    
+                    xPos.append(int(lineArr[1]))
+                    yPos.append(int(lineArr[2]))
+                    n += 1
 
-def makeSoftGraph():
-    nodeCount = 46
-    f = open("L1Nodes.csv", "r")
-    fstr = str(f.read())
-    linesArray = fstr.split("\n")
-    names = []
-    for i in range(0,len(linesArray)):
-        line = linesArray[i]
-        # print(line)
-        lineArr = line.split(",")
-        # print(lineArr)
-        if(len(lineArr) > 1):
-            names.append(lineArr[0])
+    margin = 50
+    minX = min(xPos) - margin
+    minY = min(yPos) - margin
+    # print(, min(yPos))
+    for i in range(0, len(xPos)):
+        positions.append(Point((int(xPos[i]) - minX) * scaleFactor,(int(yPos[i]) - minY) * scaleFactor))
+
+
+    # print(groups)
 
     f.close()
 
-    f = open("L1Edges.csv", "r")
+
+
+    nodeCount = n
+
+    f = open("Edge.csv", "r")
     fstr = str(f.read())
     # print(type(f))
     linesArray = fstr.split("\n")
@@ -154,14 +179,16 @@ def makeSoftGraph():
         # print(lineArr)
         if(len(lineArr) > 1 and i > 0):
             # names.append(lineArr[0])
-            v1 = lineArr[1]
-            v2 = lineArr[2]
-            v1Ind = names.index(v1)
-            v2Ind = names.index(v2)
-            graph.addEdge(v1Ind,v2Ind)
-            pass
+            v1 = lineArr[0]
+            v2 = lineArr[1]
+            try:
+                v1Ind = names.index(v1)
+                v2Ind = names.index(v2)
+                graph.addEdge(v1Ind,v2Ind)
+            except:
+                pass
+    return graph, positions, names
 
-    return graph
 
 def generateSimpleGraph(n, seed):
     #Seed goes up to #(N-1) * (N-2) / 2
@@ -196,8 +223,8 @@ blue  = [50,50,200]
 scaleFactor = 1#1/2
 
 
-size = width, height = 750,750#1500,1750
-#size = width, height = int(1500 * scaleFactor),int(1750 * scaleFactor)
+size = width, height = 1400,750#1500,1750#750,750
+# size = width, height = int(1500 * scaleFactor),int(750 * scaleFactor)
 screen = pygame.display.set_mode(size)
 pygame.init()
 #screen.fill(white)
@@ -217,8 +244,6 @@ ballR = 20
 
 num = 1.366 * 200
 q = 0.788675 * 200
-
-world = System(Vector(0,0))
 
 '''
 ball1 = Body(1,Point(width/4,height/2), Vector(0,-1))#
@@ -246,6 +271,7 @@ bodyColors = [red, brown]
 
 grabbed = False
 dragging = -1
+worldDragging = -1
 
 grabTolerance = ballR * 2
 
@@ -259,7 +285,7 @@ charAdd = False
 
 
 def drawWorld(world):
-    pass
+    drawGraph(world.graph, world.bodies, world.id)
 
 
 lineT = 8 * scaleFactor
@@ -357,7 +383,7 @@ def rectPoints(body1Pos, body2Pos, rectWidth, screenHeight = 750, drawTupleVersi
     # return ret
 
 
-def drawGraph(graph, positions):
+def drawGraph(graph, positions, worldId):
 
     #Draw All Edges
     for v1 in range(0,len(graph.adj)):
@@ -374,7 +400,8 @@ def drawGraph(graph, positions):
 
     #Draw All Nodes
     for i in range(0,graph.v):
-        if(dragging == i):
+        if(dragging == i and worldDragging == worldId):
+            # print(f"WID: {worldDragging}, E: {i}")
             positions[i].position = pos
 
         bodyPos = positions[i].position.tuple()
@@ -386,7 +413,8 @@ def drawGraph(graph, positions):
         if pygame.font:
             font = pygame.font.Font(None, 30)
 
-            text1 = font.render(chr(65+i),1,black)
+            # text1 = font.render(chr(65+i),1,black)
+            text1 = font.render(graph.labels[i],1,black)
             textpos1 = text1.get_rect(x=bodyPos[0] + 20,y=bodyPos[1] - 20)
             screen.blit(text1, textpos1)
 
@@ -431,7 +459,19 @@ def getGraphFoler(fileNum):
     g = createGraphFromFile(fullName)
     return g
 
+def setPosToRadialPoints(worldIn, center):
+        # raidalPoints = genRadialPoints(genGraph.v)
+        raidalPoints = genRadialPoints(n)
 
+        #print(raidalPoints)
+        bodies = [None] * genGraph.v
+        for i in range(genGraph.v):
+            # print(i, raidalPoints[i])
+            
+            raidalPoints[i].add(center)
+            bodies[i] = Body(1, raidalPoints[i], Vector(0,0))
+
+        worldIn.setBodies(bodies)
 
 n = 5
 genNum = 0
@@ -449,34 +489,57 @@ GM = isomorphism.GraphMatcher(G1, G2)
 print(f"ISO: {GM.is_isomorphic()}")
 #'''
 
-softGraph = makeSoftGraph()
-softPoints = parseSoftCSV()
+world = System()
+world.id = 0
+world2 = System()
+world2.id = 1
 
-softBodies = [None] * softGraph.v
-for i in range(softGraph.v):
-    softBodies[i] = Body(1, softPoints[i], Vector(0,0))
+worlds = [world,world2]
 
 
+importWorlds = [1,1]#1 == File/Gen #2 = Soft Enge
+canAddVertex = 1
 
-raidalPoints = genRadialPoints(genGraph.v)
+numWorlds = 2;
 
-#print(raidalPoints)
-bodies = [None] * genGraph.v
-for i in range(genGraph.v):
-    # print(i, raidalPoints[i])
-    center = Point(width/2, height/2)
-    raidalPoints[i].add(center)
-    bodies[i] = Body(1, raidalPoints[i], Vector(0,0))
+for i in range(numWorlds):
+    importWorld = importWorlds[i]
 
+    if(importWorld == 1):
+
+        canAddVertex = 0
+
+        worlds[i].setGraph(genGraph)
+
+        setPosToRadialPoints(worlds[i], Point(width * ((i * 2) + 1)/4, height/2))   
+
+    if(importWorld == 2):
+
+        canAddVertex = 0
+
+        softGraph, softPoints, labels = makeSoftGraph()
+
+        softBodies = [None] * softGraph.v
+        for i in range(softGraph.v):
+            softBodies[i] = Body(1, softPoints[i], Vector(0,0))
+
+        world.setGraph(softGraph)
+        world.setBodies(softBodies)
+        world.graph.setLabels(labels)
 
 # world.graph.matPlotShow()
 
-#addAllNonIsos(5)
+# addAllNonIsos(5)
 genNum = 0
 
 #3,2,0/1,5,8,9,7,4,(Dis),6,10
 
 #9
+
+labels = ["1","2","3","4","5","6"]
+
+# world.graph.setLabels(labels)
+
 
 while(True):
     for event in pygame.event.get():
@@ -509,6 +572,14 @@ while(True):
     # print(world.polyPoints(1,0))
 
 
+    #Draw center Line
+    th = 6
+    l = (width/2) - th/2
+    r = (width/2) + th/2
+    rect = [Point(l,0).tuple(),Point(l,height).tuple(),Point(r,height).tuple(),Point(r,0).tuple()]
+    pygame.draw.polygon(screen, black, rect)
+
+
     mouseLast = mouseNow
     mouseNow = pygame.mouse.get_pressed()
     
@@ -524,14 +595,19 @@ while(True):
 
         #Check Distance to all Points and move if close. 
         if(dragging == -1):
-            for i in range(0,world.N):
-                dist = (world.bodies)[i].position.distanceTo(pos)
-                if (dist < grabTolerance):
-                    print("Grab")
-                    grabbed = True
-                    dragging = i
+            for j in range(len(worlds)):
+                curWorld = worlds[j]
+                for i in range(0,curWorld.N):
+                    dist = (curWorld.bodies)[i].position.distanceTo(pos)
+                    # print(f"I {i}, dist {dist}")
+                    if (dist < grabTolerance):
+                        print("Grab")
+                        grabbed = True
+                        dragging = i
+                        worldDragging = j
+                        print(f"WD: {worldDragging}")
 
-        if(not grabbed):
+        if(not grabbed and canAddVertex):
             snapPos = pos.snapGridPos(gridUnits)
             # print(type(snapPos))
             # print(snapPos)
@@ -540,8 +616,9 @@ while(True):
             
 
     if(mouseReleased[0] and not dragging == -1):
-        (world.bodies)[dragging].position = pos.snapGridPos(gridUnits)
+        (worlds[worldDragging].bodies)[dragging].position = pos.snapGridPos(gridUnits)
         dragging = -1
+        worldDragging = -1
 
     keysLast = keysNow
     keysNow = pygame.key.get_pressed()
@@ -593,6 +670,10 @@ while(True):
                     print("N")
                     genGraph = getGraphFoler(genNum)
                     genNum += 1
+                    # for i in range(numWorlds):
+                    for i in range(1):
+                        worlds[i].setGraph(genGraph)
+                        setPosToRadialPoints(worlds[i], Point(width * ((i * 2) + 1)/4, height/2))
                     # genGraph = generateSimpleGraph(n,genNum)
                     
 
@@ -623,8 +704,13 @@ while(True):
                             charAdd = False
                             characterSequence = []
 
-    # drawGraph(world.graph, world.bodies)
-    drawGraph(genGraph, bodies)
+    
+
+    drawWorld(world)
+    drawWorld(world2)
+
+
+    # drawGraph(genGraph, bodies)
 
     # drawGraph(softGraph, softBodies)
     '''

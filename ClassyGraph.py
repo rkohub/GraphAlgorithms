@@ -34,6 +34,10 @@ class ClassyGraph():
                 self.eColorNums[i] = LinkedList()
         else:
             self.eColorNums = eColorNumsIn
+
+        self.labels = []
+        for i in range(self.v):
+            self.labels.append(chr(65+i))
     
 
     def export(self, file = "graphExport.txt"):
@@ -76,6 +80,9 @@ class ClassyGraph():
                         used.append(val)
         used.sort()
         return used
+
+    def setLabels(self, labelsIn):
+        self.labels = labelsIn
 
     def vertexExists(self, v):
         return v >= 0 and v < self.v
