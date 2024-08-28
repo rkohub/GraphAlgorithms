@@ -99,7 +99,7 @@ class Vector(Point):
         return Vector(xIn = (p1.x + p2.x), yIn = (p1.y + p2.y))
 
     def normalize(self):
-        return Vector(xIn = (self.x / self.magnitude), yIn = (self.y / self.mag))
+        return Vector(xIn = (self.x / self.magnitude), yIn = (self.y / self.magnitude))
 
     def toString(self):
         return f"{self.x} i, {self.y} j -- Mag: {self.magnitude}, Angle: {self.angle * 180 / math.pi}"

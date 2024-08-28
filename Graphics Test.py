@@ -7,6 +7,12 @@ from Body import Body, System
 from Point import Point, Vector
 from ClassyGraph import ClassyGraph
 from networkx.algorithms import isomorphism
+import networkx as nx
+import matplotlib.pyplot as plt
+
+from networkx.generators.nonisomorphic_trees import _layout_to_graph, _next_rooted_tree
+from networkx.generators import nonisomorphic_trees
+
 
 #TODO !!!
 #Labels Array
@@ -25,6 +31,11 @@ from networkx.algorithms import isomorphism
 #Curved Edges (3 point spline, Dragable?)
 #BFS, DFS, A*, Dikstra...
 
+#https://networkx.org/documentation/stable/reference/generators.html
+#https://pallini.di.uniroma1.it/Introduction.html
+#https://pallini.di.uniroma1.it/
+#https://stackoverflow.com/questions/42796175/understanding-nauty-algorithm
+#https://users.cecs.anu.edu.au/~bdm/papers/orderly.pdf
 
 #Errors
 #Cant remove vertecies
@@ -55,6 +66,7 @@ def removeEdge(letterA, letterB):
 
 def createGraphFromFile(fileName):
     f = open(fileName, "r")
+    print(f"FN {fileName}")
     f = str(f.read())
     # print(type(f))
     linesArray = f.split("\n")
@@ -216,9 +228,14 @@ def generateSimpleGraph(n, seed):
 white = [255,255,255]
 black = [0,0,0]
 brown = [190,130,65]
-grey  = [200,200,200]
+grey  = [140,140,140]
 red   = [200,50,50]
-blue  = [50,50,200]
+blue  = [100,80,240]
+green = [70,200,40]
+purple = [80,10,180]
+yellow = [200, 200, 50]
+orange = [255, 120, 0]
+darkBrown = [110,80,70]
 
 scaleFactor = 1#1/2
 
@@ -256,7 +273,7 @@ world.addBody(ball3)
 # world.addBody(ball4)
 #'''
 
-gridUnits = 25 * scaleFactor
+gridUnits = 10#25 * scaleFactor
 
 ballR = 15 * scaleFactor
 
@@ -267,7 +284,7 @@ mouseNow     = (False,False,False)
 mousePressed = (False,False,False)
 
 
-bodyColors = [red, brown]
+bodyColors = [red, brown, blue, green, orange, purple, yellow, darkBrown, grey]
 
 grabbed = False
 dragging = -1
@@ -386,17 +403,22 @@ def rectPoints(body1Pos, body2Pos, rectWidth, screenHeight = 750, drawTupleVersi
 def drawGraph(graph, positions, worldId):
 
     #Draw All Edges
+    c = -1
+    # colors = [7,7,1,1,7,1,7,1,7,3,3,3,3,3,1]
     for v1 in range(0,len(graph.adj)):
         for j in range(0,len(graph.adj[v1].iterable())):
             col = graph.eColorNums[v1].iterable()[j].value
             v2 = graph.adj[v1].iterable()[j].value
+            # c += 1
 
             # if(graph.edgeExists(v1,v2)):
                
-                # print("call")
+                # print("call")n
             rect = rectPoints(positions[v1].position,positions[v2].position,lineT,drawTupleVersion = False)
 
             pygame.draw.polygon(screen, bodyColors[col], rect)
+            # pygame.draw.polygon(screen, bodyColors[c%5 + 2], rect)
+            # pygame.draw.polygon(screen, bodyColors[colors[c]], rect)
 
     #Draw All Nodes
     for i in range(0,graph.v):
@@ -427,11 +449,16 @@ def checkGenEquivalence():
     folderName = "./GraphExports/"
     genLib = genGraph.makeGraphLib()
     for fileName in os.listdir(folderName):
-        fullName = folderName + fileName
-        g = createGraphFromFile(fullName).makeGraphLib()
-        iso = isomorphism.GraphMatcher(genLib,g).is_isomorphic()
-        if(iso):
-            return True
+        if("DS" not in fileName):
+            fullName = folderName + fileName
+            print(f"FN: {fullName}")
+            g = createGraphFromFile(fullName).makeGraphLib()
+
+            #Check other things to equivalnec. (Degree sequence)
+
+            iso = isomorphism.GraphMatcher(genLib,g).is_isomorphic()
+            if(iso):
+                return True
     return False
 
 def addAllNonIsos(n):
@@ -439,44 +466,121 @@ def addAllNonIsos(n):
     nums = int(((n) * (n-1)) / (2))#int(((n-1) * (n-2)) / (2))
     numGraphs = (2 ** nums)
     for i in range(numGraphs):
-        print(i)
-        seenB4 = checkGenEquivalence()
-        print(f"seenB4: {seenB4}")
-        if(not seenB4):
-            exportGen()
+        # print(i)
+
+        genLib = genGraph.makeGraphLib()
+
+        deg = genLib.degree
+        #print(len(deg))
+        #print(deg,type(deg))
+        degList = [ deg[i] for i in genLib.nodes()]
+        #print(degList,type(degList))
+        all3 = True
+        for v in degList:
+            all3 = all3 and (v == 3)
+
+        # print()
+
+        # if(nx.is_empty(genLib) or nx.is_connected(genLib) and all3):
+        # if(nx.is_empty(genLib) or nx.is_connected(genLib)):
+        # if(True):
+        if((not nx.is_empty(genLib)) and nx.is_connected(genLib) and nx.number_of_nodes(genLib) == 5):
+            # print(f"{i}")
+            seenB4 = checkGenEquivalence()
+            # print(f"seenB4: {seenB4}")
+            if(not seenB4):
+                print(f"{i}")
+                exportGen()
+
         genNum += 1
         genGraph = generateSimpleGraph(n,genNum)
 
 def getGraphFoler(fileNum):
     folderName = "./GraphExports/"
-    genLib = genGraph.makeGraphLib()
+    # genLib = genGraph.makeGraphLib()
     #print(os.listdir(folderName))
     #print(fileNum)
     fileList = os.listdir(folderName)
     fileCount = len(fileList)
     fileName = fileList[fileNum%fileCount]
     fullName = folderName + fileName
-    g = createGraphFromFile(fullName)
-    return g
+    if("DS" not in fileName):
+        g = createGraphFromFile(fullName)
+        return g
+    else:
+        return -1
+
+def setWorldPositions(worldIn, positionsIn):
+    bodies = [None] * genGraph.v
+    for i in range(genGraph.v):
+        bodies[i] = Body(1, positionsIn[i], Vector(0,0))
+    worldIn.setBodies(bodies)
 
 def setPosToRadialPoints(worldIn, center):
         # raidalPoints = genRadialPoints(genGraph.v)
         raidalPoints = genRadialPoints(n)
+        # raidalPoints = genRadialPoints(10)
 
-        #print(raidalPoints)
-        bodies = [None] * genGraph.v
         for i in range(genGraph.v):
             # print(i, raidalPoints[i])
             
             raidalPoints[i].add(center)
-            bodies[i] = Body(1, raidalPoints[i], Vector(0,0))
 
-        worldIn.setBodies(bodies)
+        setWorldPositions(worldIn,raidalPoints)
 
-n = 5
+def ltg(layout):
+    G = nx.Graph()
+    stack = []
+    for i in range(len(layout)):
+        i_level = layout[i]
+        if stack:
+            j = stack[-1]
+            '''
+            j_level = layout[j]
+            print(f"st0: {stack}, j {j}, J_l {j_level}")
+            while j_level >= i_level:
+                print(f"st1: {stack}")
+                stack.pop()
+                print(f"st2: {stack}")
+                j = stack[-1]
+                #print(j)
+                j_level = layout[j]
+            #'''
+            # G.add_edge(i, j)
+            print(i,j)
+        stack.append(i)
+    return
+
+def _st(layout):
+    """Returns a tuple of two layouts, one containing the left
+    subtree of the root vertex, and one containing the original tree
+    with the left subtree removed."""
+
+    one_found = False
+    m = None
+    for i in range(len(layout)):
+        if layout[i] == 1:
+            if one_found:
+                m = i
+                break
+            else:
+                one_found = True
+
+    if m is None:
+        m = len(layout)
+
+    left = [layout[i] - 1 for i in range(1, m)]
+    rest = [0] + [layout[i] for i in range(m, len(layout))]
+    return (left, rest)
+
+n = 8
 genNum = 0
 
-genGraph = generateSimpleGraph(n,genNum)
+treeGen = nonisomorphic_trees(n)
+
+# genGraph = generateSimpleGraph(n,genNum)
+# genGraph = ClassyGraph.classGraphToGraph(nx.cubical_graph())
+genGraph = getGraphFoler(0)
 
 '''
 newGraph = createGraphFromFile("./GraphExports/g3.txt")
@@ -501,6 +605,7 @@ importWorlds = [1,1]#1 == File/Gen #2 = Soft Enge
 canAddVertex = 1
 
 numWorlds = 2;
+
 
 for i in range(numWorlds):
     importWorld = importWorlds[i]
@@ -527,10 +632,67 @@ for i in range(numWorlds):
         world.setBodies(softBodies)
         world.graph.setLabels(labels)
 
+# colors = [LinkedList()] * n
+
+linePoints = [0] * n
+linePoints2 = [0] * n
+linePoints3 = [0] * n
+
+# #C,A,B,D,E
+# xs = [100,200,0,300,400]
+
+ret = [(375, 50), (630, 240), (100, 240), (210, 550), (540, 550), (375, 200), (240, 280), (500, 280), (290, 440), (450, 440)]
+
+ret2 = [(530, 120), (590, 300), (420, 190), (420, 410), (530, 480), (170, 120), (60, 190), (240, 300), (60, 410), (170, 480)]
+
+ret3 = [(250, 90), (270, 390), (520, 90), (500, 390), (380, 310), (120, 320), (650, 320), (520, 550), (250, 550), (380, 190)]
+
+ret4 = [(310, 60), (480, 130), (150, 130), (410, 190), (210, 190), (310, 530), (80, 300), (540, 300), (480, 460), (150, 460)]
+
+ret5 = [(340, 100), (520, 170), (170, 170), (440, 630), (250, 630), (340, 370), (80, 330), (610, 330), (580, 510), (110, 510)]
+
+ret6 = [(330, 160), (480, 160), (550, 550), (400, 550), (250, 550), (250, 290), (630, 420), (560, 290), (400, 380), (180, 420)]
+
+ret7 = [(120, 320), (310, 50), (310, 580), (620, 480), (620, 150), (390, 150), (230, 260), (560, 260), (290, 460), (500, 460)]
+
+
+cube = [(110, 590), (590, 590), (430, 430), (270, 430), (110, 110), (270, 270), (430, 270), (590, 110)]
+
+bip = [(520, 240), (520, 500), (390, 240), (390, 500), (100, 500), (100, 240), (250, 500), (250, 240)]
+
+
+rets = [cube, bip, ret,ret2,ret3,ret4,ret5,ret6,ret7]
+
+retNum = 1
+
+def rToLP(retNum):
+    lp = [0] * n
+    for i in range(n):
+        lp[i] = Point(rets[retNum][i][0], rets[retNum][i][1])
+    return lp
+
+
+
+for i in range(n):
+    # linePoints[i] = Point(width/2 + 100 + xs[i], height/2)
+    linePoints[i] = Point(width/2 + ret[i][0],ret[i][1])
+    linePoints3[i] = Point(ret[i][0],ret[i][1])
+    linePoints2[i] = Point(ret2[i][0],ret2[i][1])
+
+setWorldPositions(world, rToLP(0))
+# setWorldPositions(world2, linePoints)
+
+
+target = rToLP(1)
+
+# world.graph.eColorNums = colors
+# world2.graph.eColorNums = colors
+
 # world.graph.matPlotShow()
 
-# addAllNonIsos(5)
+# addAllNonIsos(n)
 genNum = 0
+# genGraph = getGraphFoler(0)
 
 #3,2,0/1,5,8,9,7,4,(Dis),6,10
 
@@ -541,6 +703,8 @@ labels = ["1","2","3","4","5","6"]
 # world.graph.setLabels(labels)
 
 
+start = time.time()
+
 while(True):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -549,8 +713,14 @@ while(True):
     screen.fill(white)
 
 
-    # world.stepAll()
-    # pygame.draw.circle(screen, grey , (width/2, height/2), width/4, width = 1)
+    # if(time.time() < start + 20):
+    if(True):
+        world.stepAll() 
+        world.checkIfCloseToTarget(target)
+        pygame.draw.circle(screen, grey , (width/2, height/2),20)
+    
+
+    #pygame.draw.circle(screen, grey , (width/2, height/2), width/4, width = 1)
 
     '''
     world.stepAll()
@@ -630,7 +800,7 @@ while(True):
                 #VD,VC,ED,EC
                 if(i == 21): #V = Vertex  
                     #Start vertex stuff
-                    print("E")
+                    print("V")
                     charAdd = True
                     pass
 
@@ -649,31 +819,75 @@ while(True):
                 if(i == 23 and not charAdd): #X = Export  
                     #Export Graph To File
                     print("X")
-                    # world.graph.export()
-                    seenB4 = checkGenEquivalence()
-                    print(f"seenB4: {seenB4}")
-                    if(not seenB4):
-                        exportGen()
+                    world.graph.export()
+                    # seenB4 = checkGenEquivalence()
+                    # print(f"seenB4: {seenB4}")    
+                    # if(not seenB4):
+                    #     exportGen()
 
                 if(i == 3 and not charAdd): #D = Display  
                     #Export Graph To File
                     print("D")
                     world.graph.matPlotShow()
 
+                if(i == 2 and not charAdd): #C = Copy over
+                    #Export Graph To File
+                    print("C")
+                    world2.graph = world.graph
+
+                if(i == 11 and not charAdd): #L = Layout
+                    #Show layout graph
+                    print("L")
+                    l1 = [0, 1, 2, 1, 2] #Path
+                    l2 = [0, 1, 2, 1, 1] #1 Vertex deg 3, rest 2
+                    l3 = [0, 1, 1, 1, 1] #1 vertex degree 4
+
+                    # print(_st(l1), _st(l2), _st(l3))
+
+                    ln = _next_rooted_tree(l1)
+                    print(l1)
+                    G1 = _layout_to_graph(l1)
+                    ltg(l1)
+                    nx.draw(G1, with_labels=True, font_weight='bold')
+                    plt.show()
+
+                if(i == 0 and not charAdd): #A = Animage
+                    #Export Graph To File
+                    print("A")
+                    world.setAnimationSpeed(target)
+
+
                 if(i == 19 and not charAdd): #T = Tree  
                     #Check if is tree
                     print("T")
                     print(world.graph.isTree())
 
+                if(i == 15 and not charAdd): #P = Position
+                    print("P")
+                    for b in world.bodies:
+                        print(b.position)
+                    # print(world.bodies)
+
                 if(i == 13 and not charAdd): #N = Next  
                     #Next Generated Graph
                     print("N")
-                    genGraph = getGraphFoler(genNum)
+
+                    # retNum = (retNum + 1) % 7
                     genNum += 1
-                    # for i in range(numWorlds):
-                    for i in range(1):
-                        worlds[i].setGraph(genGraph)
-                        setPosToRadialPoints(worlds[i], Point(width * ((i * 2) + 1)/4, height/2))
+
+                    target = rToLP(genNum % 2)
+
+                    # 
+                    # genGraph = getGraphFoler(genNum)
+                    # if(genGraph == -1):
+                    #     genNum += 1
+                    #     genGraph = getGraphFoler(genNum)
+
+                    # genGraph = ClassyGraph.classGraphToGraph(next(treeGen))
+                    # # for i in range(numWorlds):
+                    # for i in range(1):
+                    #     worlds[i].setGraph(genGraph)
+                    #     setPosToRadialPoints(worlds[i], Point(width * ((i * 2) + 1)/4, height/2))
                     # genGraph = generateSimpleGraph(n,genNum)
                     
 
@@ -707,7 +921,7 @@ while(True):
     
 
     drawWorld(world)
-    drawWorld(world2)
+    # drawWorld(world2)
 
 
     # drawGraph(genGraph, bodies)

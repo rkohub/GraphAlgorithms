@@ -62,6 +62,18 @@ class ClassyGraph():
         f.write(graphStr)
         f.close()
 
+    @staticmethod
+    def classGraphToGraph(G):
+        graph = ClassyGraph(G.number_of_nodes())
+        nodes = list(G.nodes)
+        edges = list(G.edges)
+        for i in range(0,len(edges)):
+            edge = edges[i]
+            v1 = nodes.index(edge[0])
+            v2 = nodes.index(edge[1])
+            graph.addEdge(v1,v2)
+        return graph
+
     def clearGraph(self):
         self = self.__init__()
 
