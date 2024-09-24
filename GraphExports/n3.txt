@@ -1,0 +1,21 @@
+O
+A
+B
+C
+D
+E
+F
+G
+
+O A
+O B
+O D
+A C
+A E
+B C
+B F
+D E
+D F
+C G
+E G
+F G

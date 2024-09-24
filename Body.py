@@ -1,6 +1,9 @@
 from Point import Point, Vector
 import math
 from ClassyGraph import ClassyGraph
+import random
+
+# from Body import Body, System
 
 class Body:
     def __init__(self, massIn, posIn, velIn = None):
@@ -45,7 +48,48 @@ class System:
         self.systemAccel = systemAccelIn
         self.gravitationalConstant = 0.001#100#100#0.001
         self.graph = ClassyGraph(self.v)
+        self.id = -1
     
+    def animateBodiesTo(self, positionsIn):
+        #Set velocity towards point, random speed
+        #If point close to targetPos (Distance < thresh), Snap it
+        pass
+
+    def setAnimationSpeed(self, positionsIn, travelTime = 1):
+        #Set velocity towards point, random speed
+        #If point close to targetPos (Distance < thresh), Snap it
+        # speed = 1/travelTime
+        for i in range(len(positionsIn)):
+            xDiff = positionsIn[i].x - self.bodies[i].position.x 
+            yDiff = positionsIn[i].y - self.bodies[i].position.y
+
+
+
+            speed = 100#random.randint(150,250)
+
+            dist = self.bodies[i].position.distanceTo(positionsIn[i])
+            speed = dist / (speed  * travelTime)
+
+            norm = Vector(xDiff,yDiff).normalize().scalarMultiplication(speed)
+            self.bodies[i].velocity = norm
+        
+
+    def checkIfCloseToTarget(self, positionsIn):
+        #Set velocity towards point, random speed
+        #If point close to targetPos (Distance < thresh), Snap it
+        for i in range(len(positionsIn)):
+            dist = self.bodies[i].position.distanceTo(positionsIn[i])
+            if(dist < 5):
+                self.bodies[i].position = positionsIn[i]
+                self.bodies[i].velocity = Vector(0,0)
+
+    def setBodies(self, bodidesIn):
+        self.bodies = bodidesIn
+
+    def setGraph(self, graphIn):
+        self.graph = graphIn
+        self.N = graphIn.v
+
     #Fg = G m1m2/r^2
     #Ag = C mOTHER/R^2
     def addGravityAccel(self):
@@ -82,7 +126,7 @@ class System:
             #print(f"POs: {body.position.toString()}")
             #if(not(body.mass == 1)):
             body.step(systemAccelIn = self.systemAccel if useSystemAccel else Vector(0,0))
-            body.checkEdges()
+            # body.checkEdges()
 
     def polyPoints(self, body1Index, body2Index, rectWidth, screenHeight = 750, drawTupleVersion = True):
         # return [(50,50),(60,40),(80,70),(70,90)]
@@ -103,9 +147,23 @@ class System:
             return [Point(-w*p/2 + b1.x,w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + b1.x,-w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).drawTuple(screenHeight),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).drawTuple(screenHeight)]
         else:
             return [Point(-w*p/2 + b1.x,w*n/2 + b1.y).tuple(),Point(w*p/2 + b1.x,-w*n/2 + b1.y).tuple(),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).tuple(),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).tuple()]
-        
-
-    
+         
     def addBody(self, bodyIn):
         self.bodies[self.N] = bodyIn
         self.N += 1
+
+    def printPoints(self):
+        print(self.pointsString()) 
+    
+    def pointsString(self) -> str:
+        outString = "["
+        # for b in self.bodies:
+        for i in range(len(self.bodies)):
+            b = self.bodies[i]
+            # print(b.position)
+            outString += f"{round(b.position,2)}"
+            if(not(i == (len(self.bodies) - 1))):
+                outString += ", "#\n"
+
+        outString += "]"
+        return outString

@@ -28,6 +28,19 @@ class Point:
         self.x /= (10 ** places)
         self.y /= (10 ** places)
         return self
+    
+    def __round__(self, num_digits=None):
+        if(num_digits == None):
+            num_digits = 1
+            
+        #Round X and Y variables
+        self.x *= (10 ** num_digits)
+        self.y *= (10 ** num_digits)
+        self.x = int(self.x)
+        self.y = int(self.y)
+        self.x /= (10 ** num_digits)
+        self.y /= (10 ** num_digits)
+        return self
 
     def nearestUnit(self,num, gridUnit):
         # print(gridUnit, num)
@@ -99,7 +112,7 @@ class Vector(Point):
         return Vector(xIn = (p1.x + p2.x), yIn = (p1.y + p2.y))
 
     def normalize(self):
-        return Vector(xIn = (self.x / self.magnitude), yIn = (self.y / self.mag))
+        return Vector(xIn = (self.x / self.magnitude), yIn = (self.y / self.magnitude))
 
     def toString(self):
         return f"{self.x} i, {self.y} j -- Mag: {self.magnitude}, Angle: {self.angle * 180 / math.pi}"

@@ -6,6 +6,7 @@ from networkx.algorithms import isomorphism
 
 class ClassyGraph():
     def __init__ (self, vIn = 0, adjIn = -1, dataIn = -1, vColorNumsIn = -1, eColorNumsIn = -1):
+        #Number Vertexes
         self.v = vIn
         if(adjIn == -1):
             self.adj = [None] * self.v
@@ -34,6 +35,10 @@ class ClassyGraph():
                 self.eColorNums[i] = LinkedList()
         else:
             self.eColorNums = eColorNumsIn
+
+        self.labels = []
+        for i in range(self.v):
+            self.labels.append(chr(65+i))
     
 
     def export(self, file = "graphExport.txt"):
@@ -58,6 +63,61 @@ class ClassyGraph():
         f.write(graphStr)
         f.close()
 
+    def vertexDirectedNeighbors(self, vertexIndexOne, vertexIndexTwo):
+        if(vertexIndexTwo in self.adj[vertexIndexOne].values()):
+            print(f"{vertexIndexOne} edge to {vertexIndexTwo}")
+            return True
+        if(vertexIndexOne in self.adj[vertexIndexTwo].values()):
+            print(f"{vertexIndexTwo} edge to {vertexIndexOne}")
+            return True
+        return False 
+
+    def colorBasedOnSelected(self, selectedVertexIndex):
+        # for j in range(len(self.vColorNums)):
+        for i in range(self.v):
+            if(not(i == selectedVertexIndex or self.vertexDirectedNeighbors(i,selectedVertexIndex))):
+                self.vColorNums[i] = 9#Light Red
+            else:
+                self.vColorNums[i] = 0#Keep Default Red Coloring
+
+        # for j in range(len(self.eColorNums)):
+        for i in range(self.v):
+            # print(j)
+            if(i == selectedVertexIndex):
+                newCols = [1 for k in range(len(self.eColorNums[i].values()))] # 1 = Keep Default Brown Coloring
+                self.eColorNums[i] = LinkedList.fromArray(newCols) #For All Edge Coming Out Of index.
+            elif(selectedVertexIndex in self.adj[i].values()):
+                adjIndex = self.adj[i].values().index(selectedVertexIndex)
+
+                newCols = [10 for k in range(len(self.eColorNums[i].values()))] # 10 = Light Brown 
+                newCols[adjIndex] = 1 # 1 = Keep Default Brown Coloring
+                self.eColorNums[i] = LinkedList.fromArray(newCols) #For All Edge Coming Out Of index.
+            else:
+                newCols = [10 for k in range(len(self.eColorNums[i].values()))] # 10 = Light Brown
+                self.eColorNums[i] = LinkedList.fromArray(newCols) #For All Edge Coming Out Of index.  
+            
+            
+
+    def colorDefault(self):
+        for j in range(len(self.vColorNums)):
+            self.vColorNums[j] = 0#Red
+
+        for j in range(len(self.eColorNums)):
+            newCols = [1 for k in range(len(self.eColorNums[j].values()))]#1 = Brown
+            self.eColorNums[j] = LinkedList.fromArray(newCols)
+
+    @staticmethod
+    def classGraphToGraph(G):
+        graph = ClassyGraph(G.number_of_nodes())
+        nodes = list(G.nodes)
+        edges = list(G.edges)
+        for i in range(0,len(edges)):
+            edge = edges[i]
+            v1 = nodes.index(edge[0])
+            v2 = nodes.index(edge[1])
+            graph.addEdge(v1,v2)
+        return graph
+
     def clearGraph(self):
         self = self.__init__()
 
@@ -76,6 +136,9 @@ class ClassyGraph():
                         used.append(val)
         used.sort()
         return used
+
+    def setLabels(self, labelsIn):
+        self.labels = labelsIn
 
     def vertexExists(self, v):
         return v >= 0 and v < self.v
