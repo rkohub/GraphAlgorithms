@@ -5,6 +5,14 @@ from Data import Data, DataLinked
 
 #Linked list, double pointed, using sentinels
 class LinkedList():
+
+    @staticmethod
+    def fromArray(array):
+        newLL = LinkedList()
+        for i in range(0,len(array)):
+            newLL.add(array[i])
+        return newLL
+
     def __init__ (self):
         self.head = DataLinked(keyIn = "Sentinel Head")
         self.tail = DataLinked(keyIn = "Sentinel Tail")
@@ -45,6 +53,9 @@ class LinkedList():
             arr[i] = pos.unlink()
             pos = pos.next
         return arr
+    
+    def __repr__(self) -> str:
+        return str(self.iterable())
 
     def keys(self):
         arr = [None] * self.N
@@ -66,6 +77,19 @@ class LinkedList():
         for i in range(0,len(itt)):
             newLL.addData(itt[i])
         return newLL
+    
+    def set(self, index, value):
+        newLL = LinkedList()
+        itt = self.iterable()
+        # print(itt)
+        for i in range(0,len(itt)):
+            if(i == index):
+                newLL.addData(Data(value, value))
+            else:
+                newLL.addData(itt[i])
+        return newLL
+        # self = newLL
+
 
     #def containsData(self, data):
 

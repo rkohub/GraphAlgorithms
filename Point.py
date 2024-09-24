@@ -28,6 +28,19 @@ class Point:
         self.x /= (10 ** places)
         self.y /= (10 ** places)
         return self
+    
+    def __round__(self, num_digits=None):
+        if(num_digits == None):
+            num_digits = 1
+            
+        #Round X and Y variables
+        self.x *= (10 ** num_digits)
+        self.y *= (10 ** num_digits)
+        self.x = int(self.x)
+        self.y = int(self.y)
+        self.x /= (10 ** num_digits)
+        self.y /= (10 ** num_digits)
+        return self
 
     def nearestUnit(self,num, gridUnit):
         # print(gridUnit, num)

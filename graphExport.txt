@@ -8,14 +8,26 @@ G
 H
 
 A B
-A D
+A C
 A E
-B C
-B H
+B A
+B D
+B F
+C A
 C D
 C G
-D F
+D B
+D C
+D H
+E A
 E F
-E H
-F G
+E G
+F B
+F E
+F H
+G C
+G E
 G H
+H D
+H F
+H G

@@ -3,6 +3,8 @@ import math
 from ClassyGraph import ClassyGraph
 import random
 
+# from Body import Body, System
+
 class Body:
     def __init__(self, massIn, posIn, velIn = None):
         if(velIn == None):
@@ -145,9 +147,23 @@ class System:
             return [Point(-w*p/2 + b1.x,w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + b1.x,-w*n/2 + b1.y).drawTuple(screenHeight),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).drawTuple(screenHeight),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).drawTuple(screenHeight)]
         else:
             return [Point(-w*p/2 + b1.x,w*n/2 + b1.y).tuple(),Point(w*p/2 + b1.x,-w*n/2 + b1.y).tuple(),Point(w*p/2 + n + b1.x,-w*n/2 + p + b1.y).tuple(),Point(-w*p/2 + n + b1.x,w*n/2 + p + b1.y).tuple()]
-        
-
-    
+         
     def addBody(self, bodyIn):
         self.bodies[self.N] = bodyIn
         self.N += 1
+
+    def printPoints(self):
+        print(self.pointsString()) 
+    
+    def pointsString(self) -> str:
+        outString = "["
+        # for b in self.bodies:
+        for i in range(len(self.bodies)):
+            b = self.bodies[i]
+            # print(b.position)
+            outString += f"{round(b.position,2)}"
+            if(not(i == (len(self.bodies) - 1))):
+                outString += ", "#\n"
+
+        outString += "]"
+        return outString
